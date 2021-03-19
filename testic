@@ -1,0 +1,265 @@
+//|a:b:c| = max(a,b,c)
+    
+	public void visit(Maks m)
+	{
+		Obj prvi = Tab.insert(Obj.Var, "prvi", Tab.intType);
+		Obj drugi = Tab.insert(Obj.Var, "drugi", Tab.intType);
+		Obj treci = Tab.insert(Obj.Var, "treci", Tab.intType);
+		
+		Code.store(treci);
+		Code.store(drugi);
+		Code.store(prvi);
+		
+		Code.load(prvi);
+		Code.load(drugi);
+		Code.putFalseJump(Code.ge, 0);
+		int drugiVeci1 = Code.pc - 2;
+		
+		//prvi veci
+		Code.load(prvi);
+		Code.load(treci);
+		Code.putFalseJump(Code.ge, 0);
+		int treciVeci1 = Code.pc - 2;
+		
+		//prvi najveci
+		Code.load(prvi);
+		Code.store(m.getDesignator().obj);
+		Code.putJump(0); //kraj
+		int kraj1 = Code.pc - 2;
+		
+		//drugi veci 
+		Code.fixup(drugiVeci1);
+		
+		Code.load(drugi);
+		Code.load(treci);
+		Code.putFalseJump(Code.ge, 0);
+		int treciVeci2 = Code.pc - 2;
+		
+		//drugi najveci
+		Code.load(drugi);
+		Code.store(m.getDesignator().obj);
+		Code.putJump(0); //kraj
+		int kraj2 = Code.pc - 2;
+		
+		//treci najveci
+		Code.fixup(treciVeci1);
+		Code.fixup(treciVeci2);
+		Code.load(treci);
+		Code.store(m.getDesignator().obj);
+		Code.fixup(kraj1);
+		Code.fixup(kraj2);
+		
+	}
+	
+//DODAVANJE LABELE
+	
+    
+	private ArrayList<Obj> labels = new ArrayList<Obj>();
+	private ArrayList<Integer> labelsAdr = new ArrayList<Integer>();
+	
+	public void visit(StatementLabel l)
+	{
+		Obj node = new Obj(Obj.Con, l.getI1(), Tab.intType);
+		node.setAdr(Code.pc);
+		labels.add(node);
+	}
+	
+    public void visit(StatementGoto go)
+    {
+    	for(Obj label: labels)
+    	{
+    		if(label.getName().equals(go.getI1()))
+    		{
+    			Code.putJump(label.getAdr());
+    			break;
+    		}
+    	}
+    }
+    
+    //u MethDecl treba obrisati kontrolne liste
+    
+    
+    
+    
+    
+    
+    ArrayList<Integer> gotovo = new ArrayList<Integer>();
+	//ArrayList<Integer> skok = new ArrayList<Integer>();
+	int skok = 0;
+    
+    
+	public void visit(StartMod mod)
+	{
+		//PRAVI BINARNU REPREZENTACIJU BROJA
+		
+		/*Obj pomocni = new Obj(Obj.Var, "pomocni", Tab.intType);
+		Code.store(pomocni);
+		
+		
+		Obj iterator = Tab.insert(Obj.Var, "iterator", Tab.intType);
+		Code.loadConst(0);
+		Code.store(iterator);	
+
+			skok = Code.pc;
+			
+			Code.load(mod.getDesignator().obj);
+			Code.load(iterator);
+			Code.load(pomocni);
+			Code.put(Code.const_2);
+			Code.put(Code.rem);
+			Code.put(Code.astore);
+						
+			Code.load(pomocni);
+			Code.put(Code.const_2);
+			Code.put(Code.div);
+			Code.store(pomocni);
+			
+			Code.load(pomocni);
+			Code.loadConst(0);
+			Code.putFalseJump(Code.ne, 0);
+			gotovo.add(Code.pc-2);
+			
+			
+			//uvecavanje iteratora za petlju
+			Code.load(iterator);
+			Code.put(Code.const_1);
+			Code.put(Code.add);
+			Code.store(iterator);
+	
+			Code.putJump(skok);
+			*/
+		
+		//SABIRANJE ELEMENATA NIZA SPREDA I OTPOZADI
+		
+		  /*
+			Obj pomeraj = Tab.insert(Obj.Var, "poemraj", Tab.intType);
+			Code.store(pomeraj);
+			
+			
+			Obj duzina = Tab.insert(Obj.Var, "duzina", Tab.intType);
+			Code.load(mod.getDesignator().obj);		
+			Code.put(Code.arraylength);
+			Code.store(duzina);	
+	
+			//element otpozadi
+			Code.load(mod.getDesignator().obj);
+			Code.load(duzina);
+			Code.load(pomeraj);
+			Code.put(Code.sub);
+			Code.put(Code.aload);
+		
+			//element spreda			
+			Code.load(mod.getDesignator().obj);
+			Code.load(pomeraj);
+			Code.put(Code.aload);
+			
+			Code.put(Code.add);
+			
+			Code.put(Code.const_5);
+			Code.put(Code.print);
+		*/
+		
+		
+		//OD BINARNOG BROJA KARAKTER
+		
+		Obj karakter = Tab.insert(Obj.Var, "karakter", Tab.charType);
+		Obj broj = Tab.insert(Obj.Var, "broj", Tab.intType);
+		Obj brojPomocni = Tab.insert(Obj.Var, "brojPom", Tab.intType);
+		Obj iterator = Tab.insert(Obj.Var, "iterator", Tab.intType);
+		Obj temp = Tab.insert(Obj.Var, "temp", Tab.intType);
+		Obj duzina = Tab.insert(Obj.Var, "duzina", Tab.intType);
+		
+		int pocetakPetlje;
+		int i;
+		int petlja;
+		
+		Code.load(mod.getDesignator().obj);		
+		Code.put(Code.arraylength);
+		Code.store(duzina);	
+		
+		Code.loadConst(2);
+		Code.store(iterator);
+		
+		Code.loadConst(0);
+		Code.store(broj);
+		
+		//0-ti element
+		Code.load(mod.getDesignator().obj);
+		Code.loadConst(0);
+		Code.put(Code.aload);
+		Code.loadConst(1);
+		Code.putFalseJump(Code.eq, 0);
+		int skok = Code.pc - 2;
+		Code.loadConst(1);
+		Code.store(broj);
+		
+		
+		//1. element
+		Code.fixup(skok);
+		
+		Code.load(mod.getDesignator().obj);	
+		Code.loadConst(1);
+		Code.put(Code.aload);
+		Code.loadConst(1);
+		Code.putFalseJump(Code.eq, 0);
+		skok = Code.pc - 2;
+		
+		Code.loadConst(2);
+		Code.load(broj);
+		Code.put(Code.add);
+		Code.store(broj);
+		
+		//ostali elementi
+		Code.fixup(skok);
+		
+		petlja = Code.pc;
+		
+		Code.load(mod.getDesignator().obj);	
+		Code.load(iterator);
+		Code.put(Code.aload);
+		Code.loadConst(1);
+		Code.putFalseJump(Code.eq, 0);
+		i = Code.pc - 2;
+		
+		Code.loadConst(2);
+		Code.store(brojPomocni);
+		
+		Code.load(iterator);
+		Code.store(temp);
+		
+		pocetakPetlje = Code.pc;
+		
+		Code.load(brojPomocni);
+		Code.loadConst(2);
+		Code.put(Code.mul);
+		Code.store(brojPomocni);
+		
+		
+		Code.load(temp);
+		Code.loadConst(1);
+		Code.put(Code.sub);
+		Code.store(temp);
+		Code.load(temp);
+		Code.loadConst(1);
+		Code.putFalseJump(Code.eq, pocetakPetlje);
+		int krajPetlje = Code.pc - 2;
+		
+		Code.load(brojPomocni);
+		Code.load(broj);
+		Code.put(Code.add);
+		Code.store(broj);
+		
+		//uvecavam iterator
+		Code.fixup(i);
+		
+		Code.load(iterator);
+		Code.loadConst(1);
+		Code.put(Code.add);
+		Code.store(iterator);
+		
+		Code.load(iterator);
+		Code.load(duzina);
+		Code.putFalseJump(Code.ge, petlja);
+		
+	
+	}
